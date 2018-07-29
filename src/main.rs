@@ -53,7 +53,7 @@ fn main() {
 
 pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
     let dict = vec!["dreary", "Who", "how", "somebody"];
-
+    // let alphabet = vec!['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 
     let mut results = Vec::new();
 
@@ -67,8 +67,24 @@ pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<
 
         println!("{:?}", vec);
 
+
         for item in &vec {
-            if word_vec.contains(item) {
+            // TODO strip out chars
+
+            let mut stripped_word = String::new();
+
+            for c in item.chars() {
+                if c.is_alphabetic() {
+                    stripped_word.push(c);
+                }
+                else {
+                    continue
+                }
+            }
+
+            let str_stripped_word : &str = &stripped_word;
+          
+            if word_vec.contains(&str_stripped_word) {
                 continue;
             }
             else {
@@ -76,9 +92,22 @@ pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<
             }
         }
     }
-
     results
 }
+
+// fn strip_punc(item : &str) -> str {
+//     let mut stripped_word = String::new();
+
+//     for c in item.chars() {
+//         if c.is_alphabetic() {
+//             stripped_word.push(c);
+//         }
+//         else {
+//             continue
+//         }
+//     }
+//     stripped_word 
+// }
 
 pub fn assemble_word_vec<'a>(contents: &'a str) -> Vec<&'a str> {
 
