@@ -67,7 +67,14 @@ pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<
 
         println!("{:?}", vec);
 
-
+        for item in &vec {
+            if word_vec.contains(item) {
+                continue;
+            }
+            else {
+                println!("Spelling error!: {}", item)
+            }
+        }
     }
 
     results
