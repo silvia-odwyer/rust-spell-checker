@@ -52,6 +52,21 @@ fn main() {
 }
 
 
+pub fn assemble_word_vec<'a>(contents: &'a str) -> Vec<&'a str> {
+
+    let mut word_vec = vec!["hi"];
+
+    for line in contents.lines() {
+        let split_line = line.split(" ");
+        let vec = split_line.collect::<Vec<&str>>();
+
+        for item in &vec {
+            word_vec.push(item);
+        };
+    }
+
+    word_vec
+}
 
 struct Config {
     filename: String,
