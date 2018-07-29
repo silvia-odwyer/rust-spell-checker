@@ -73,22 +73,32 @@ pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<
 
             let mut stripped_word = String::new();
 
-            for c in item.chars() {
+            
+            let item = item.to_lowercase();
+            let item_str = item.as_str();
+
+            if word_vec.contains(&item_str) {
+                continue;
+            }
+            else {
+                // Spelling mistake or else punctuation needs to be stripped out
+
+                for c in item.chars() {
                 if c.is_alphabetic() {
-                    stripped_word.push(c);
+                        stripped_word.push(c);
+                    
                 }
                 else {
                     continue
                 }
             }
-
             let str_stripped_word : &str = &stripped_word;
-          
-            if word_vec.contains(&str_stripped_word) {
+                if word_vec.contains(&str_stripped_word) {
                 continue;
             }
             else {
-                println!("Spelling error!: {}", item)
+                println!("Spelling error!: {}", str_stripped_word);
+            }
             }
         }
     }
