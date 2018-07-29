@@ -42,6 +42,11 @@ fn main() {
     &word_file.read_to_string(&mut word_file_contents)
     .expect("Something went wrong :( Could not read the file");
 
+    let word_vec = assemble_word_vec(&word_file_contents);
+
+    for line in search(&config.query, &contents, &word_vec) {
+        println!("{}", line);
+    }
 
     // println!("Contains:\n{}", contents);
 }
