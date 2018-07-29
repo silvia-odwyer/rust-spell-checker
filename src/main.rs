@@ -51,6 +51,27 @@ fn main() {
     // println!("Contains:\n{}", contents);
 }
 
+pub fn search<'a>(query: &str, contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
+    let dict = vec!["dreary", "Who", "how", "somebody"];
+
+
+    let mut results = Vec::new();
+
+    for line in contents.lines() {
+        let split_line = line.split(" ");
+        let vec = split_line.collect::<Vec<&str>>();
+        // for item in &vec {
+        //     let mut item = item.to_lowercase();
+        //     println!("{}", item);
+        // }
+
+        println!("{:?}", vec);
+
+
+    }
+
+    results
+}
 
 pub fn assemble_word_vec<'a>(contents: &'a str) -> Vec<&'a str> {
 
