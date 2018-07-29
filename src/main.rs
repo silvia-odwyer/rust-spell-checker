@@ -3,6 +3,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::process;
 use std::mem;
+extern crate termcolor;
+
+
+use std::io::Write;
+use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 struct Config {
     filename: String
@@ -22,6 +27,7 @@ impl Config {
 }
 
 fn main() {
+    // Reading in command-line args, collecting them into a vector.
     let args: Vec<String> = env::args().collect();
 
     let config = Config::new(&args).unwrap_or_else(|err| {
@@ -29,15 +35,16 @@ fn main() {
         process::exit(1);
     });
 
-    println!("In file {}", config.filename);
+    println!("Checking file {}", config.filename);
 
-    // Reading in a file
+    // Reading in the file the user wishes to spell-check.
     let mut f = File::open(config.filename).expect("File Not Found :(");
 
     let mut contents = String::new();
     &f.read_to_string(&mut contents)
     .expect("Something went wrong :( Could not read the file");
 
+    // Reading in the words.txt file that contains all words in the English language (except brand names, etc.,)
     let mut word_file_contents = String::new();
     let mut word_file = File::open("words.txt").expect("File Not Found :(");
     &word_file.read_to_string(&mut word_file_contents)
@@ -49,15 +56,18 @@ fn main() {
         println!("{}", line);
     }
 
-    // println!("Contains:\n{}", contents);
 }
 
 pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
+    
     let dict = vec!["dreary", "Who", "how", "somebody"];
 
     let mut results = Vec::new();
+    let mut line_number = 0;
+    let mut total_spelling_errors = 0;
 
     for line in contents.lines() {
+        line_number += 1;
         let split_line = line.split(" ");
         let vec = split_line.collect::<Vec<&str>>();
 
@@ -89,11 +99,18 @@ pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
                 continue;
             }
             else {
-                println!("Spelling error!: {}", str_stripped_word);
+                total_spelling_errors += 1;
+                let mut stdout = StandardStream::stdout(ColorChoice::Auto);
+                stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
+                writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
+
+                println!("{}", line);
             }
             }
         }
     }
+    println!("Total errors: {}", total_spelling_errors);
+    println!("Go over these errors, some may have been flagged inappropriately.");
     results
 }
 
