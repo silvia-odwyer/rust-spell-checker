@@ -65,15 +65,23 @@ fn main() {
     &word_file.read_to_string(&mut word_file_contents)
     .expect("Something went wrong :( Could not read the file");
 
+    // Reading in the cn_words.txt file that contains punctuation.
+    let mut cn_file_contents = String::new();
+    let mut cn_word_file = File::open("cn_words.txt").expect("File Not Found :(");
+    &cn_word_file.read_to_string(&mut cn_file_contents)
+    .expect("Something went wrong :( Could not read the file");
+
     let word_hashset = assemble_word_hashset(&word_file_contents);
 
-    search(&contents, word_hashset);
+    let cn_word_hashset = assemble_word_hashset(&cn_file_contents);
+
+    search(&contents, word_hashset, cn_word_hashset);
 
     let end = PreciseTime::now();
     println!("Took {} seconds to spell-check.", start.to(end));
 }
 
-pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>) {
+pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>) {
     let mut line_number = 0;
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
@@ -85,35 +93,44 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>) {
 
         for item in &vec {
             word_count += 1;
-            let mut stripped_word = String::new();
-            
             let item = item.to_lowercase();
             let item_str = item.as_str();
-
-            for c in item_str.chars() {
-                if c.is_alphabetic() {
-                    stripped_word.push(c);
-                }
-                else {
-                    continue
-                }
-            }
-
-            let str_stripped_word : &str = &stripped_word;
-
-            if word_hashset.contains(&str_stripped_word) {
+            
+            if cn_word_hashset.contains(item_str) {
                 continue;
             }
             else {
-                // Spelling mistake or else punctuation needs to be stripped out
-                total_spelling_errors += 1;
-                // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
-                // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
-                // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
-                println!("LINE {}, Spelling error: {} ", line_number, str_stripped_word)
-                // println!("{}", line);
-            }
+                let mut stripped_word = String::new();
+                
+
+
+                for c in item_str.chars() {
+                    if c.is_alphabetic() {
+                        stripped_word.push(c);
+                    }
+                    else {
+                        continue
+                    }
+                }
+
+                let str_stripped_word : &str = &stripped_word;
+
+                if word_hashset.contains(&str_stripped_word) {
+                    continue;
+                }
+                else {
+                    // Spelling mistake or else punctuation needs to be stripped out
+                    total_spelling_errors += 1;
+                    // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
+                    // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
+                    // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
+
+                    println!("LINE {}, Spelling error: {} ", line_number, str_stripped_word)
+                    // println!("{}", line);
+                }
+                }
+
             }
         }
     
@@ -145,9 +162,9 @@ pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
         let vec = split_line.collect::<Vec<&str>>();
 
         for item in vec {
+            let item = item.trim_matches('\\');            
             word_set.insert(item);
         };
     }
-
     word_set
 }
