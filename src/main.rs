@@ -4,7 +4,15 @@ use std::io::prelude::*;
 use std::process;
 use std::mem;
 extern crate termcolor;
-
+extern crate spinners;
+use spinners::{Spinner, Spinners};
+use std::thread::sleep;
+use std::time::Duration;
+extern crate time;
+use time::PreciseTime;
+use rand::prelude::*;
+extern crate rand;
+use std::collections::HashSet;
 
 use std::io::Write;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
@@ -27,6 +35,8 @@ impl Config {
 }
 
 fn main() {
+    let start = PreciseTime::now();
+    
     // Reading in command-line args, collecting them into a vector.
     let args: Vec<String> = env::args().collect();
 
@@ -36,6 +46,10 @@ fn main() {
     });
 
     println!("Checking file {}", config.filename);
+
+    // let sp = Spinner::new(Spinners::Dots9, "Waiting for 3 seconds".into());
+    // sleep(Duration::from_secs(3));
+    // sp.stop();
 
     // Reading in the file the user wishes to spell-check.
     let mut f = File::open(config.filename).expect("File Not Found :(");
@@ -52,20 +66,23 @@ fn main() {
 
     let word_vec = assemble_word_vec(&word_file_contents);
 
-    for line in search(&contents, &word_vec) {
+    for line in search(&contents, word_vec) {
         println!("{}", line);
     }
 
+    let end = PreciseTime::now();
+    println!("{} seconds for whatever you did.", start.to(end));
+
 }
 
-pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
+pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a str> {
     
     let dict = vec!["dreary", "Who", "how", "somebody"];
 
     let mut results = Vec::new();
     let mut line_number = 0;
     let mut total_spelling_errors = 0;
-
+    let mut word_count = 0;
     for line in contents.lines() {
         line_number += 1;
         let split_line = line.split(" ");
@@ -73,7 +90,7 @@ pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
 
         for item in &vec {
             // TODO strip out chars
-
+            word_count += 1;
             let mut stripped_word = String::new();
 
             
@@ -100,17 +117,19 @@ pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
             }
             else {
                 total_spelling_errors += 1;
-                let mut stdout = StandardStream::stdout(ColorChoice::Auto);
-                stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
-                writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
+                // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
+                // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
+                // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
-                println!("{}", line);
+                println!("LINE {}, Spelling error: {} ", line_number, str_stripped_word)
+                // println!("{}", line);
             }
             }
         }
     }
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
+    println!("Word count: {}", word_count);
     results
 }
 
@@ -128,19 +147,19 @@ pub fn search<'a>(contents: &'a str, word_vec : &Vec<&str>) -> Vec<&'a str> {
 //     stripped_word 
 // }
 
-pub fn assemble_word_vec<'a>(contents: &'a str) -> Vec<&'a str> {
+pub fn assemble_word_vec<'a>(contents: &'a str) -> HashSet<&'a str> {
 
-    let mut word_vec = vec!["hi"];
+    let mut word_set = HashSet::new();
 
     for line in contents.lines() {
         let split_line = line.split(" ");
         let vec = split_line.collect::<Vec<&str>>();
 
-        for item in &vec {
-            word_vec.push(item);
+        for item in vec {
+            word_set.insert(item);
         };
     }
 
-    word_vec
+    word_set
 }
 
