@@ -2,20 +2,19 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::process;
-use std::mem;
-extern crate termcolor;
-extern crate spinners;
-use spinners::{Spinner, Spinners};
-use std::thread::sleep;
-use std::time::Duration;
 extern crate time;
 use time::PreciseTime;
-use rand::prelude::*;
-extern crate rand;
 use std::collections::HashSet;
 
-use std::io::Write;
-use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+// Linux-only :angry: terminal imports, to make it look <<<nice>>> in-terminal
+
+// extern crate termcolor;
+// extern crate spinners;
+// use spinners::{Spinner, Spinners};
+// use std::thread::sleep;
+// use std::io::Write;
+// use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
+// use std::time::Duration;
 
 struct Config {
     filename: String
@@ -47,6 +46,8 @@ fn main() {
 
     println!("Checking file {}", config.filename);
 
+    // Linux-only terminal spinners. :pensive:
+
     // let sp = Spinner::new(Spinners::Dots9, "Waiting for 3 seconds".into());
     // sleep(Duration::from_secs(3));
     // sp.stop();
@@ -64,25 +65,19 @@ fn main() {
     &word_file.read_to_string(&mut word_file_contents)
     .expect("Something went wrong :( Could not read the file");
 
-    let word_vec = assemble_word_vec(&word_file_contents);
+    let word_hashset = assemble_word_hashset(&word_file_contents);
 
-    for line in search(&contents, word_vec) {
-        println!("{}", line);
-    }
+    search(&contents, word_hashset);
 
     let end = PreciseTime::now();
-    println!("{} seconds for whatever you did.", start.to(end));
-
+    println!("Took {} seconds to spell-check.", start.to(end));
 }
 
-pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a str> {
-    
-    let dict = vec!["dreary", "Who", "how", "somebody"];
-
-    let mut results = Vec::new();
+pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>) {
     let mut line_number = 0;
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
+
     for line in contents.lines() {
         line_number += 1;
         let split_line = line.split(" ");
@@ -107,7 +102,7 @@ pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a st
 
             let str_stripped_word : &str = &stripped_word;
 
-            if word_vec.contains(&str_stripped_word) {
+            if word_hashset.contains(&str_stripped_word) {
                 continue;
             }
             else {
@@ -126,7 +121,6 @@ pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a st
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
     println!("Word count: {}", word_count);
-    results
 }
 
 // fn strip_punc(item : &str) -> str {
@@ -143,7 +137,7 @@ pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a st
 //     stripped_word 
 // }
 
-pub fn assemble_word_vec<'a>(contents: &'a str) -> HashSet<&'a str> {
+pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
 
     let mut word_set = HashSet::new();
 
