@@ -1,0 +1,9 @@
+[package]
+name = "rspell"
+version = "0.1.0"
+authors = ["silvia-odwyer <silviaodwyer19@gmail.com>"]
+
+[dependencies]
+termcolor = "1"
+spinners = "1.0.0"
+time = "*"

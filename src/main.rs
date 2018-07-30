@@ -84,7 +84,6 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>) {
         let vec = split_line.collect::<Vec<&str>>();
 
         for item in &vec {
-            // TODO strip out chars
             word_count += 1;
             let mut stripped_word = String::new();
             
@@ -152,4 +151,3 @@ pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
 
     word_set
 }
-
