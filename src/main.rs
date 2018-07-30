@@ -92,30 +92,26 @@ pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a st
             // TODO strip out chars
             word_count += 1;
             let mut stripped_word = String::new();
-
             
             let item = item.to_lowercase();
             let item_str = item.as_str();
 
-            if word_vec.contains(&item_str) {
-                continue;
-            }
-            else {
-                // Spelling mistake or else punctuation needs to be stripped out
-
-                for c in item.chars() {
+            for c in item_str.chars() {
                 if c.is_alphabetic() {
-                        stripped_word.push(c);
+                    stripped_word.push(c);
                 }
                 else {
                     continue
                 }
             }
+
             let str_stripped_word : &str = &stripped_word;
-                if word_vec.contains(&str_stripped_word) {
+
+            if word_vec.contains(&str_stripped_word) {
                 continue;
             }
             else {
+                // Spelling mistake or else punctuation needs to be stripped out
                 total_spelling_errors += 1;
                 // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
                 // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
@@ -126,7 +122,7 @@ pub fn search<'a>(contents: &'a str, word_vec :  HashSet<&'a str>) -> Vec<&'a st
             }
             }
         }
-    }
+    
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
     println!("Word count: {}", word_count);
