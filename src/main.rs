@@ -96,9 +96,9 @@ fn main() {
     search(&contents, word_hashset, cn_word_hashset);
 
     let end = PreciseTime::now();
-    println!("Took {} seconds to spell-check.", start.to(end));
-
-    println!("The edit distance between 'the' and 'teh' is this: {}.", edit_distance(&String::from("didi"), &String::from("gogo")));
+	let time_taken = format!("{}", start.to(end));
+	let time_taken = &time_taken[2..];
+    println!("Took {} seconds to spell-check.", time_taken);
 }
 
 pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>) {
@@ -144,20 +144,26 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
                     // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
-                    println!("LINE {}, Spelling error: {} ", line_number, str_stripped_word);
-
+					println!("Line {}: {}", line_number, line);
+					println!("Spelling error: {}.", str_stripped_word);
+					
                     println!("Suggestions: ");
-
+					
+					let mut replacements = Vec::new();
+					
                     for word in &word_hashset {
                         if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 1 {
-                            println!("{}", word);
+                            replacements.push(word);
                         }
                     }
-                    println!("{}", line);
-                }
+					
+					for (i, replacement) in replacements.iter().enumerate() {
+						println!("{}. {}", i, replacement);
+					}
                 }
             }
         }
+    }
     
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
