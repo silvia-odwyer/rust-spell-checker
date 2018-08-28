@@ -149,7 +149,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     println!("Suggestions: ");
 
                     for word in &word_hashset {
-                        if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 3 {
+                        if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 1 {
                             println!("{}", word);
                         }
                     }
