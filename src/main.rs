@@ -33,6 +33,23 @@ impl Config {
     }
 }
 
+// Converts word file (containing all words in the English language) into a HashSet
+pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
+
+    let mut word_set = HashSet::new();
+
+    for line in contents.lines() {
+        let split_line = line.split(" ");
+        let vec = split_line.collect::<Vec<&str>>();
+
+        for item in vec {
+            let item = item.trim_matches('\\');            
+            word_set.insert(item);
+        };
+    }
+    word_set
+}
+
 fn main() {
     let start = PreciseTime::now();
     
@@ -103,8 +120,6 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 
                 let mut stripped_word = String::new();
                 
-
-
                 for c in item_str.chars() {
                     if c.is_alphabetic() {
                         stripped_word.push(c);
@@ -130,41 +145,10 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     // println!("{}", line);
                 }
                 }
-
             }
         }
     
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
     println!("Word count: {}", word_count);
-}
-
-// fn strip_punc(item : &str) -> str {
-//     let mut stripped_word = String::new();
-
-//     for c in item.chars() {
-//         if c.is_alphabetic() {
-//             stripped_word.push(c);
-//         }
-//         else {
-//             continue
-//         }
-//     }
-//     stripped_word 
-// }
-
-pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
-
-    let mut word_set = HashSet::new();
-
-    for line in contents.lines() {
-        let split_line = line.split(" ");
-        let vec = split_line.collect::<Vec<&str>>();
-
-        for item in vec {
-            let item = item.trim_matches('\\');            
-            word_set.insert(item);
-        };
-    }
-    word_set
 }
