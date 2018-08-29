@@ -39,15 +39,19 @@ pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
 
     let mut word_set = HashSet::new();
 
-    for line in contents.lines() {
-        let split_line = line.split(" ");
-        let vec = split_line.collect::<Vec<&str>>();
+    for (i, line) in contents.lines().enumerate() {
+		if i >= 45 {
+		
+			let split_line = line.split(" ");
+			let vec = split_line.collect::<Vec<&str>>();
 
-        for item in vec {
-            let item = item.trim_matches('\\');            
-            word_set.insert(item);
-        };
+			for item in vec {
+				let item = item.trim_matches('\\');            
+				word_set.insert(item);
+			};
+		}
     }
+
     word_set
 }
 
