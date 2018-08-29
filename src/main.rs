@@ -5,6 +5,7 @@ use std::process;
 extern crate time;
 use time::PreciseTime;
 use std::collections::HashSet;
+use std::cmp::min;
 
 // Linux-only :angry: terminal imports, to make it look <<<nice>>> in-terminal
 
@@ -95,7 +96,9 @@ fn main() {
     search(&contents, word_hashset, cn_word_hashset);
 
     let end = PreciseTime::now();
-    println!("Took {} seconds to spell-check.", start.to(end));
+	let time_taken = format!("{}", start.to(end));
+	let time_taken = &time_taken[2..];
+    println!("Took {} seconds to spell-check.", time_taken);
 }
 
 pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>) {
@@ -141,14 +144,66 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
                     // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
-                    println!("LINE {}, Spelling error: {} ", line_number, str_stripped_word)
-                    // println!("{}", line);
-                }
+					println!("Line {}: {}", line_number, line);
+					println!("Spelling error: {}.", str_stripped_word);
+					
+                    println!("Suggestions: ");
+					
+					let mut replacements = Vec::new();
+					
+                    for word in &word_hashset {
+                        if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 1 {
+                            replacements.push(word);
+                        }
+                    }
+					
+					for (i, replacement) in replacements.iter().enumerate() {
+						println!("{}. {}", i, replacement);
+					}
                 }
             }
         }
+    }
     
     println!("Total errors: {}", total_spelling_errors);
     println!("Go over these errors, some may have been flagged inappropriately.");
     println!("Word count: {}", word_count);
+}
+
+pub fn edit_distance<'a, 'b>(s1: &'a String, s2: &'b String) -> u32 {
+    let rows = s2.chars().count() + 1;
+    let columns = s1.chars().count() + 1;
+
+    let mut matrix = Vec::new();
+
+    for _ in 0..rows {
+        matrix.push(Vec::new());
+    }
+    
+    for mut row in &mut matrix {
+        for _ in 0..columns {
+            row.push(0);
+        }
+    }
+
+    for num in 0..columns {
+        matrix[0][num] = num;
+    }
+
+    for num in 0..rows {
+        matrix[num][0] = num;
+    }
+
+    for i in 1..rows {
+        for j in 1..columns {
+            if s2[i-1..i] == s1[j-1..j] {
+                matrix[i][j] = matrix[i-1][j-1];
+            }
+            else {
+                matrix[i][j] = 1 + min(matrix[i-1][j-1], min(matrix[i-1][j], matrix[i][j-1]));
+            }
+        }
+    }
+
+    matrix[rows-1][columns-1] as u32
 }
