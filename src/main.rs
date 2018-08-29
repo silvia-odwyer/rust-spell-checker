@@ -168,53 +168,17 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 					println!("Line {}: {}", line_number, line);
 					println!("Spelling error: {}.", str_stripped_word);
 					
-/*                     for word in &ranked_words_hashset {
-						let word_and_rank: Vec<&str> = word.split(" ").collect();
-                        if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 2 {
-                            replacements.push(word_and_rank);
-                        }
-                    }
-					
- 					let mut ranks = Vec::new();
-					
-					for replacement in &replacements {
-						let rank = replacement[1];
-						ranks.push(rank);
-					}
-					
-					ranks.sort();
-
-					
-					let mut ordered_replacements = Vec::new();
-					
-					for rank in ranks {
-						for replacement in &replacements {
-							if replacement[1] == rank {
-								ordered_replacements.push(replacement[0]);
-							}
-						}
-					}
-					
-					ordered_replacements.truncate(4);
-					
-					
-					
-                    if ordered_replacements.len() > 0 {
-                        println!("Suggestions: ");
-                        for (i, replacement) in ordered_replacements.iter().enumerate() {
-						    println!("{}. {}", i, replacement);
-					    }
-                    } */
-					
 					let mut replacements = Vec::new();
 					let mut replacements_distance_is_two = Vec::new();
 					
 					for word in &ranked_words_hashset {
 						let word_and_rank: Vec<&str> = word.split(" ").collect();
-						if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 1 {
+						let edit_distance = edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string());
+						
+						if edit_distance <= 1 {
 							replacements.push(word_and_rank);
 						}
-						else if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 2 {
+						else if edit_distance <= 2 {
 							replacements_distance_is_two.push(word_and_rank);
 						}
 					}
@@ -237,7 +201,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 						}
 					}
 					
-					let mut ranks_dist_is_two = Vec::new();
+ 					let mut ranks_dist_is_two = Vec::new();
 					for replacement in &replacements_distance_is_two {
 						ranks_dist_is_two.push(replacement[1]);
 					}
@@ -255,13 +219,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 						}
 					}
 					
-					let mut final_replacements = Vec::new();
-					
-					if popular_words_dist_is_one.len() > 0 {
-						for replacement in popular_words_dist_is_one.iter() {
-							final_replacements.push(replacement);
-						}
-					}
+					let mut final_replacements = popular_words_dist_is_one;
 					
 					if popular_words_dist_is_two.len() > 0 {
 						for replacement in popular_words_dist_is_two.iter() {
