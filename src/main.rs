@@ -55,6 +55,16 @@ pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
     word_set
 }
 
+pub fn assemble_suggestion_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
+	let mut word_set = HashSet::new();
+
+    for line in contents.lines() {	
+		word_set.insert(line);
+	}
+
+    word_set
+}
+
 fn main() {
     let start = PreciseTime::now();
     
@@ -94,16 +104,16 @@ fn main() {
     .expect("Something went wrong :( Could not read the file");
 	
 	// Reading in the suggestion_words.txt that contains a smaller list of words used for suggestions 
-	let mut suggestion_words_contents = String::new();
-	let mut suggestion_words_file = File::open("suggestion_words.txt").expect("File Not Found :(");
-	&suggestion_words_file.read_to_string(&mut suggestion_words_contents)
+	let mut ranked_words_contents = String::new();
+	let mut ranked_words_file = File::open("words_ranked.txt").expect("File Not Found :(");
+	&ranked_words_file.read_to_string(&mut ranked_words_contents)
 	.expect("Something went wrong :( Could not read the file");
 
     let word_hashset = assemble_word_hashset(&word_file_contents);
     let cn_word_hashset = assemble_word_hashset(&cn_file_contents);
-	let suggestion_words_hashset = assemble_word_hashset(&suggestion_words_contents);
+	let ranked_words_hashset = assemble_suggestion_hashset(&ranked_words_contents);
 
-    search(&contents, word_hashset, cn_word_hashset, suggestion_words_hashset);
+    search(&contents, word_hashset, cn_word_hashset, ranked_words_hashset);
 
     let end = PreciseTime::now();
 	let time_taken = format!("{}", start.to(end));
@@ -112,7 +122,7 @@ fn main() {
 }
 
 pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>, 
-					suggestion_words_hashset: HashSet<&'a str>) {
+					ranked_words_hashset: HashSet<&'a str>) {
     let mut line_number = 0;
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
@@ -160,15 +170,40 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 						
 					let mut replacements = Vec::new();
 					
-                    for word in &suggestion_words_hashset {
-                        if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 1 {
-                            replacements.push(word);
+                    for word in &ranked_words_hashset {
+						let word_and_rank: Vec<&str> = word.split(" ").collect();
+                        if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 2 {
+                            replacements.push(word_and_rank);
                         }
                     }
+					
+ 					let mut ranks = Vec::new();
+					
+					for replacement in &replacements {
+						let rank = replacement[1];
+						ranks.push(rank);
+					}
+					
+					ranks.sort();
 
-                    if replacements.len() > 0 {
+					
+					let mut ordered_replacements = Vec::new();
+					
+					for rank in ranks {
+						for replacement in &replacements {
+							if replacement[1] == rank {
+								ordered_replacements.push(replacement[0]);
+							}
+						}
+					}
+					
+					ordered_replacements.truncate(4);
+					
+					
+					
+                    if ordered_replacements.len() > 0 {
                         println!("Suggestions: ");
-                        for (i, replacement) in replacements.iter().enumerate() {
+                        for (i, replacement) in ordered_replacements.iter().enumerate() {
 						    println!("{}. {}", i, replacement);
 					    }
                     }
