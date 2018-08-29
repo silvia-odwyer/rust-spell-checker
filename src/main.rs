@@ -147,7 +147,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 					println!("Line {}: {}", line_number, line);
 					println!("Spelling error: {}.", str_stripped_word);
 					
-                    println!("Suggestions: ");
+
 					
 					let mut replacements = Vec::new();
 					
@@ -156,10 +156,15 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                             replacements.push(word);
                         }
                     }
+
+                    if replacements.len() > 0 {
+                        println!("Suggestions: ");
+                        for (i, replacement) in replacements.iter().enumerate() {
+						    println!("{}. {}", i, replacement);
+					    }
+                    }
 					
-					for (i, replacement) in replacements.iter().enumerate() {
-						println!("{}. {}", i, replacement);
-					}
+
                 }
             }
         }
