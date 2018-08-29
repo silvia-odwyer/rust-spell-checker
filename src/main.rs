@@ -167,10 +167,8 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 
 					println!("Line {}: {}", line_number, line);
 					println!("Spelling error: {}.", str_stripped_word);
-						
-					let mut replacements = Vec::new();
 					
-                    for word in &ranked_words_hashset {
+/*                     for word in &ranked_words_hashset {
 						let word_and_rank: Vec<&str> = word.split(" ").collect();
                         if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 2 {
                             replacements.push(word_and_rank);
@@ -206,7 +204,78 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                         for (i, replacement) in ordered_replacements.iter().enumerate() {
 						    println!("{}. {}", i, replacement);
 					    }
-                    }
+                    } */
+					
+					let mut replacements = Vec::new();
+					let mut replacements_distance_is_two = Vec::new();
+					
+					for word in &ranked_words_hashset {
+						let word_and_rank: Vec<&str> = word.split(" ").collect();
+						if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 1 {
+							replacements.push(word_and_rank);
+						}
+						else if edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string()) <= 2 {
+							replacements_distance_is_two.push(word_and_rank);
+						}
+					}
+					
+					let mut ranks_dist_is_one = Vec::new();
+					for replacement in &replacements {
+						ranks_dist_is_one.push(replacement[1]);
+					}
+					
+ 					ranks_dist_is_one.sort();
+ 					ranks_dist_is_one.truncate(3);
+					
+ 					let mut popular_words_dist_is_one = Vec::new(); 
+					
+					for rank in ranks_dist_is_one {
+						for replacement in &replacements {
+							if replacement[1] == rank {
+								popular_words_dist_is_one.push(replacement[0]);
+							}
+						}
+					}
+					
+					let mut ranks_dist_is_two = Vec::new();
+					for replacement in &replacements_distance_is_two {
+						ranks_dist_is_two.push(replacement[1]);
+					}
+					
+					ranks_dist_is_two.sort();
+					ranks_dist_is_two.truncate(2);
+					
+					let mut popular_words_dist_is_two = Vec::new();
+					
+					for rank in ranks_dist_is_two {
+						for replacement in &replacements_distance_is_two {
+							if replacement[1] == rank {
+								popular_words_dist_is_two.push(replacement[0]);
+							}
+						}
+					}
+					
+					let mut final_replacements = Vec::new();
+					
+					if popular_words_dist_is_one.len() > 0 {
+						for replacement in popular_words_dist_is_one.iter() {
+							final_replacements.push(replacement);
+						}
+					}
+					
+					if popular_words_dist_is_two.len() > 0 {
+						for replacement in popular_words_dist_is_two.iter() {
+							final_replacements.push(replacement);
+						}
+					}
+					
+					if final_replacements.len() > 0 {
+						println!("Suggestions: ");
+						
+						for (i, replacement) in final_replacements.iter().enumerate() {
+							println!("{}. {}", i, replacement);
+						}
+					}
                 }
             }
         }
