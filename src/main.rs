@@ -39,15 +39,29 @@ pub fn assemble_word_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
 
     let mut word_set = HashSet::new();
 
-    for line in contents.lines() {
-        let split_line = line.split(" ");
-        let vec = split_line.collect::<Vec<&str>>();
+    for (i, line) in contents.lines().enumerate() {
+		if i >= 45 {
+		
+			let split_line = line.split(" ");
+			let vec = split_line.collect::<Vec<&str>>();
 
-        for item in vec {
-            let item = item.trim_matches('\\');            
-            word_set.insert(item);
-        };
+			for item in vec {
+				let item = item.trim_matches('\\');            
+				word_set.insert(item);
+			};
+		}
     }
+
+    word_set
+}
+
+pub fn assemble_suggestion_hashset<'a>(contents: &'a str) -> HashSet<&'a str> {
+	let mut word_set = HashSet::new();
+
+    for line in contents.lines() {	
+		word_set.insert(line);
+	}
+
     word_set
 }
 
@@ -88,12 +102,18 @@ fn main() {
     let mut cn_word_file = File::open("cn_words.txt").expect("File Not Found :(");
     &cn_word_file.read_to_string(&mut cn_file_contents)
     .expect("Something went wrong :( Could not read the file");
+	
+	// Reading in the suggestion_words.txt that contains a smaller list of words used for suggestions 
+	let mut ranked_words_contents = String::new();
+	let mut ranked_words_file = File::open("words_ranked.txt").expect("File Not Found :(");
+	&ranked_words_file.read_to_string(&mut ranked_words_contents)
+	.expect("Something went wrong :( Could not read the file");
 
     let word_hashset = assemble_word_hashset(&word_file_contents);
-
     let cn_word_hashset = assemble_word_hashset(&cn_file_contents);
+	let ranked_words_hashset = assemble_suggestion_hashset(&ranked_words_contents);
 
-    search(&contents, word_hashset, cn_word_hashset);
+    search(&contents, word_hashset, cn_word_hashset, ranked_words_hashset);
 
     let end = PreciseTime::now();
 	let time_taken = format!("{}", start.to(end));
@@ -101,7 +121,8 @@ fn main() {
     println!("Took {} seconds to spell-check.", time_taken);
 }
 
-pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>) {
+pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>, 
+					ranked_words_hashset: HashSet<&'a str>) {
     let mut line_number = 0;
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
@@ -147,24 +168,72 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
 					println!("Line {}: {}", line_number, line);
 					println!("Spelling error: {}.", str_stripped_word);
 					
-
-					
 					let mut replacements = Vec::new();
+					let mut replacements_distance_is_two = Vec::new();
 					
-                    for word in &word_hashset {
-                        if edit_distance(&word.to_string(), &str_stripped_word.to_string()) <= 1 {
-                            replacements.push(word);
-                        }
-                    }
-
-                    if replacements.len() > 0 {
-                        println!("Suggestions: ");
-                        for (i, replacement) in replacements.iter().enumerate() {
-						    println!("{}. {}", i, replacement);
-					    }
-                    }
+					for word in &ranked_words_hashset {
+						let word_and_rank: Vec<&str> = word.split(" ").collect();
+						let edit_distance = edit_distance(&word_and_rank[0].to_string(), &str_stripped_word.to_string());
+						
+						if edit_distance <= 1 {
+							replacements.push(word_and_rank);
+						}
+						else if edit_distance <= 2 {
+							replacements_distance_is_two.push(word_and_rank);
+						}
+					}
 					
-
+					let mut ranks_dist_is_one = Vec::new();
+					for replacement in &replacements {
+						ranks_dist_is_one.push(replacement[1]);
+					}
+					
+ 					ranks_dist_is_one.sort();
+ 					ranks_dist_is_one.truncate(3);
+					
+ 					let mut popular_words_dist_is_one = Vec::new(); 
+					
+					for rank in ranks_dist_is_one {
+						for replacement in &replacements {
+							if replacement[1] == rank {
+								popular_words_dist_is_one.push(replacement[0]);
+							}
+						}
+					}
+					
+ 					let mut ranks_dist_is_two = Vec::new();
+					for replacement in &replacements_distance_is_two {
+						ranks_dist_is_two.push(replacement[1]);
+					}
+					
+					ranks_dist_is_two.sort();
+					ranks_dist_is_two.truncate(2);
+					
+					let mut popular_words_dist_is_two = Vec::new();
+					
+					for rank in ranks_dist_is_two {
+						for replacement in &replacements_distance_is_two {
+							if replacement[1] == rank {
+								popular_words_dist_is_two.push(replacement[0]);
+							}
+						}
+					}
+					
+					let mut final_replacements = popular_words_dist_is_one;
+					
+					if popular_words_dist_is_two.len() > 0 {
+						for replacement in popular_words_dist_is_two.iter() {
+							final_replacements.push(replacement);
+						}
+					}
+					
+					if final_replacements.len() > 0 {
+						println!("Suggestions: ");
+						
+						for (i, replacement) in final_replacements.iter().enumerate() {
+							println!("{}. {}", i, replacement);
+						}
+					}
                 }
             }
         }
