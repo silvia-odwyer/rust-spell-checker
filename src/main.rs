@@ -127,6 +127,25 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
 
+    let sentences = contents.split(".");
+
+    let mut sentences_and_questions = Vec::new();
+    
+    for sentence in sentences {
+        if sentence.contains("?") {
+            let questions = sentence.split("?");
+            for q in questions {
+                sentences_and_questions.push(q);
+            }
+        } else {
+            sentences_and_questions.push(sentence);
+        }
+    }
+
+    for i in &sentences_and_questions {
+        println!("{}", i);
+    }
+
     for line in contents.lines() {
         line_number += 1;
         let split_line = line.split(" ");
