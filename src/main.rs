@@ -123,7 +123,6 @@ fn main() {
 
 pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>, 
 					ranked_words_hashset: HashSet<&'a str>) {
-    let mut line_number = 0;
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
 
@@ -135,30 +134,48 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
         if sentence.contains("?") {
             let questions = sentence.split("?");
             for q in questions {
-                sentences_and_questions.push(q);
+                if !sentence.is_empty() {
+                    sentences_and_questions.push(q.trim());
+                }
             }
         } else {
-            sentences_and_questions.push(sentence);
+            if !sentence.is_empty() {
+                sentences_and_questions.push(sentence.trim());
+            }
         }
     }
 
-    for i in &sentences_and_questions {
-        println!("{}", i);
-    }
-
-    for line in contents.lines() {
-        line_number += 1;
-        let split_line = line.split(" ");
-        let vec = split_line.collect::<Vec<&str>>();
+    for sentence in &sentences_and_questions {
+        let split_sentence = sentence.split(" ");
+        let vec = split_sentence.collect::<Vec<&str>>();
+        
+        let mut current_word_index = 0;
 
         for item in &vec {
+            current_word_index += 1;
             word_count += 1;
+
+            if current_word_index == 1 {
+                //println!("{}", item);
+                let mut chars = item.chars();
+                
+                if !item.is_empty() {
+                    let first_char = chars.next().expect("No first character in first word.");
+
+                    if first_char.is_uppercase() {
+                        //println!("First word of sentence is capital.");
+                    }
+                }
+            }
+            
             let item = item.to_lowercase();
             let item_str = item.as_str();
+            
             
             if cn_word_hashset.contains(item_str) {
                 continue;
             }
+
             else {
 
                 let mut stripped_word = String::new();
@@ -184,7 +201,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
                     // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
-					println!("Line {}: {}", line_number, line);
+					//println!("Line {}: {}", line_number, line);
 					println!("Spelling error: {}.", str_stripped_word);
 					
 					let mut replacements = Vec::new();
