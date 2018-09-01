@@ -117,24 +117,23 @@ fn main() {
 pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_words_hashset: HashSet<&'a str>) {
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
-
-    let sentences = contents.split(".");
+    
+    
+    let modified_contents = contents.replace("?", ".");
+    let modified_contents = modified_contents.replace("!", ".");
+    let modified_contents = modified_contents.as_str();
+    let modified_contents = modified_contents.split(".").collect::<Vec<&str>>();
 
     let mut sentences_and_questions = Vec::new();
-    
-    for sentence in sentences {
-        if sentence.contains("?") {
-            let questions = sentence.split("?");
-            for q in questions {
-                if !sentence.is_empty() {
-                    sentences_and_questions.push(q.trim());
-                }
-            }
-        } else {
-            if !sentence.is_empty() {
-                sentences_and_questions.push(sentence.trim());
-            }
+
+    for sentence in modified_contents {
+        if !sentence.is_empty() {
+            sentences_and_questions.push(sentence.trim());
         }
+    }
+
+    for s in &sentences_and_questions {
+        println!("{}", s);
     }
 
     for sentence in &sentences_and_questions {
