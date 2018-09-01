@@ -106,7 +106,7 @@ fn main() {
     let word_hashset = assemble_word_hashset(&word_file_contents);
 	let ranked_words_hashset = assemble_suggestion_hashset(&ranked_words_contents);
 
-    search(&contents, word_hashset, cn_word_hashset, ranked_words_hashset);
+    search(&contents, word_hashset, ranked_words_hashset);
 
     let end = PreciseTime::now();
 	let time_taken = format!("{}", start.to(end));
@@ -114,8 +114,7 @@ fn main() {
     println!("Took {} seconds to spell-check.", time_taken);
 }
 
-pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_hashset : HashSet<&'a str>, 
-					ranked_words_hashset: HashSet<&'a str>) {
+pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_words_hashset: HashSet<&'a str>) {
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
 
@@ -156,7 +155,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                     let first_char = chars.next().expect("No first character in first word.");
 
                     if first_char.is_uppercase() {
-                        if word_hashset.contains(item.to_lowercase().as_str()){
+                        if word_hashset.contains(item.to_lowercase().as_str()) || word_hashset.contains(item) {
                             continue;
                         } else {
                             total_spelling_errors += 1;
@@ -187,7 +186,7 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, cn_word_h
                 // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
 
         		//println!("Line {}: {}", line_number, line);
-				println!("Spelling error: {}", item);
+				println!("Spelling error: {}.", item);
 				give_suggestions(&ranked_words_hashset, &item);
             }
         }
