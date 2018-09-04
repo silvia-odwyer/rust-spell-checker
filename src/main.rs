@@ -119,10 +119,23 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_wo
     let mut word_count = 0;
     
     
-    let modified_contents = contents.replace("?", ".");
-    let modified_contents = modified_contents.replace("!", ".");
-    let modified_contents = modified_contents.as_str();
+    let mut modified_contents = contents.replace("?", ".");
+    modified_contents = modified_contents.replace("!", ".");
+
+    modified_contents = modified_contents.replace(",", "");
+    modified_contents = modified_contents.replace(";", "");
+    modified_contents = modified_contents.replace(":", "");
+    modified_contents = modified_contents.replace("[", "");
+    modified_contents = modified_contents.replace("]", "");
+    modified_contents = modified_contents.replace("(", "");
+    modified_contents = modified_contents.replace(")", "");
+    modified_contents = modified_contents.replace("{", "");
+    modified_contents = modified_contents.replace("}", "");
+    modified_contents = modified_contents.replace("\"", "");
+
+
     let modified_contents = modified_contents.split(".").collect::<Vec<&str>>();
+    
 
     let mut sentences_and_questions = Vec::new();
 
@@ -130,10 +143,6 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_wo
         if !sentence.is_empty() {
             sentences_and_questions.push(sentence.trim());
         }
-    }
-
-    for s in &sentences_and_questions {
-        println!("{}", s);
     }
 
     for sentence in &sentences_and_questions {
