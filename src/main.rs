@@ -7,8 +7,6 @@ use time::PreciseTime;
 use std::collections::HashSet;
 use std::cmp::min;
 
-// Linux-only :angry: terminal imports, to make it look <<<nice>>> in-terminal
-
 // extern crate termcolor;
 // extern crate spinners;
 // use spinners::{Spinner, Spinners};
@@ -106,7 +104,7 @@ fn main() {
     let word_hashset = assemble_word_hashset(&word_file_contents);
 	let ranked_words_hashset = assemble_suggestion_hashset(&ranked_words_contents);
 
-    search(&contents, word_hashset, ranked_words_hashset);
+    search(contents, word_hashset, ranked_words_hashset);
 
     let end = PreciseTime::now();
 	let time_taken = format!("{}", start.to(end));
@@ -114,31 +112,17 @@ fn main() {
     println!("Took {} seconds to spell-check.", time_taken);
 }
 
-pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_words_hashset: HashSet<&'a str>) {
+pub fn search<'a>(contents: String, word_hashset : HashSet<&'a str>, ranked_words_hashset: HashSet<&'a str>) {
     let mut total_spelling_errors = 0;
     let mut word_count = 0;
     
-    
-    let mut modified_contents = contents.replace("?", ".");
-    modified_contents = modified_contents.replace("!", ".");
-
-    modified_contents = modified_contents.replace(",", "");
-    modified_contents = modified_contents.replace(";", "");
-    modified_contents = modified_contents.replace(":", "");
-    modified_contents = modified_contents.replace("[", "");
-    modified_contents = modified_contents.replace("]", "");
-    modified_contents = modified_contents.replace("(", "");
-    modified_contents = modified_contents.replace(")", "");
-    modified_contents = modified_contents.replace("{", "");
-    modified_contents = modified_contents.replace("}", "");
-    modified_contents = modified_contents.replace("\"", "");
-
-
-    let modified_contents = modified_contents.split(".").collect::<Vec<&str>>();
-    
+    // Strip non-full-stop punctuation and store sentences in a vec.
+    let modified_contents = strip_punc(&contents);
+    let modified_contents = modified_contents.split(".").collect::<Vec<&str>>();    
 
     let mut sentences_and_questions = Vec::new();
 
+    // Strip out empty items in the vec.
     for sentence in modified_contents {
         if !sentence.is_empty() {
             sentences_and_questions.push(sentence.trim());
@@ -151,51 +135,47 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_wo
         
         let mut current_word_index = 0;
 
-        for item in &vec {
+        // Iterate over every word in the sentence 
+        for word in &vec {
             current_word_index += 1;
             word_count += 1;
 
             if current_word_index == 1 {
-                //println!("{}", item);
-                let mut chars = item.chars();
+
+                let mut chars = word.chars();
                 
-                if !item.is_empty() {
+                if !word.is_empty() {
                     let first_char = chars.next().expect("No first character in first word.");
 
+                    // If the word's first char is uppercase, conv to lowercase.
                     if first_char.is_uppercase() {
-                        if word_hashset.contains(item.to_lowercase().as_str()) || word_hashset.contains(item) {
+                        if word_hashset.contains(word.to_lowercase().as_str()) || word_hashset.contains(word) {
                             continue;
                         } else {
                             total_spelling_errors += 1;
-                            println!("Spelling error: {}.", item);
-                            give_suggestions(&ranked_words_hashset, &item);
+                            println!("Spelling error: {}.", word);
+                            give_suggestions(&ranked_words_hashset, &word);
                             continue;
                         }
                     }
                     else {
                         total_spelling_errors += 1;
-                        println!("Spelling error: {}.", item);
+                        println!("Spelling error: {}.", word);
                         println!("Suggestion: Capitalize {}. ", first_char);
                         continue;
                     }
                 }
             }
                         
-            if word_hashset.contains(item) {
+            if word_hashset.contains(word) {
                 continue;
             }
 
             else {
                 // Spelling mistake or else punctuation needs to be stripped out
                 total_spelling_errors += 1;
-
-                // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
-                // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
-                // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
-
-        		//println!("Line {}: {}", line_number, line);
-				println!("Spelling error: {}.", item);
-				give_suggestions(&ranked_words_hashset, &item);
+				println!("Spelling error: {}.", word);
+				give_suggestions(&ranked_words_hashset, &word);
             }
         }
     }   
@@ -205,13 +185,31 @@ pub fn search<'a>(contents: &'a str, word_hashset :  HashSet<&'a str>, ranked_wo
     println!("Word count: {}", word_count);
 }
 
+// Strip extraneous punctuation that isn't a full stop
+pub fn strip_punc(contents: &str) -> String {
+    let mut modified_contents = convert_to_sentences(&contents);
+
+    let punc = ["?", "!", ",", ";", ":", "[", "]", "(", ")", "{", "}", "\""];
+
+    for i in 0..punc.len() {
+        let symbol = punc[i];
+        modified_contents = modified_contents.replace(symbol, "");
+    }
+
+    return modified_contents
+}
+
+// Convert question marks, exclamation marks and other sentence-ending 
+// delimiters into full stops
+pub fn convert_to_sentences(contents: &str) -> String {
+    let mut modified_contents = contents.replace("?", ".");
+    modified_contents = modified_contents.replace("!", ".");
+    return modified_contents
+}
+
 pub fn give_suggestions<'a>(ranked_words_hashset: &HashSet<&'a str>, str_stripped_word: &'a str) {
     // Spelling mistake or else punctuation needs to be stripped out
-    
-    // let mut stdout = StandardStream::stdout(ColorChoice::Auto);
-    // stdout.set_color(ColorSpec::new().set_fg(Some(Color::Red)));
-    // writeln!(&mut stdout, "LINE {}, Spelling error: {} ", line_number, str_stripped_word);
-					
+    			
 	let mut replacements = Vec::new();
 	let mut replacements_distance_is_two = Vec::new();
 					
